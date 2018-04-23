@@ -1,0 +1,93 @@
+---
+- hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+  tasks:
+    - name: run update
+      shell: apt-get update
+
+    - name: install prerequisites
+      apt:
+        pkg: "{{item}}"
+        state: present
+      with_items:
+        - python3
+        - python3-pip
+        - nginx
+        - gunicorn
+
+    - name: create www folder
+      file:
+        path: /var/www
+        state: directory
+
+    - name: Clone the repo
+      git:
+        repo: 'https://github.com/inno-asiimwe/bucketlist-api-gcp'
+        dest: /var/www/bucketlist-api-gcp
+        clone: yes
+
+    - name: Copy env file
+      copy:
+        src: ../files/flask/.env
+        dest: /var/www/bucketlist-api-gcp/.env
+    
+    - name: Copy start up script
+      copy:
+        src: ../files/flask/start.sh
+        dest: /var/www/bucketlist-api-gcp/start.sh
+        mode: u+rwx
+
+    - name:
+      pip:
+        name: virtualenv
+        state: present
+
+    - name: creat virtualenv
+      command: virtualenv /var/www/env -p python3 creates="/var/www/env"
+
+    - name: Install requirements
+      pip:
+        requirements: /var/www/bucketlist-api-gcp/requirements.txt
+        virtualenv: /var/www/env
+    
+    - name: Remove default nginx configs
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Create new nginx file
+      file:
+        path: /etc/nginx/sites-available/bucketlist-api-gcp
+        state: touch
+
+    - name: Create symlink for the new nginx config
+      command: ln -s /etc/nginx/sites-available/bucketlist-api-gcp /etc/nginx/sites-enabled/bucketlist-api-gcp
+
+    - name: Copy over nginx configs 
+      copy:
+        src: ../files/nginx/bucketlist-api-gcp
+        dest: /etc/nginx/sites-enabled/bucketlist-api-gcp
+
+    - name: Restart nginx
+      command: service nginx restart
+
+    - name: Copy over buicketlist-api-gcp.service
+      copy:
+        src: ../files/systemd/bucketlist-api-gcp.service
+        dest: /etc/systemd/system/bucketlist-api-gcp.service
+
+    - name: Start bucketlist-api-gcp service
+      command: systemctl start bucketlist-api-gcp
+
+    - name: Enable bucketlist-api-gcp service to start on boot 
+      command: systemctl enable bucketlist-api-gcp
+
+    - name: Stop bucketlist-api-gcp service
+      command: systemctl stop bucketlist-api-gcp
+      
+
+  handlers:
+    - name: Restart nginx
+      command: service nginx restart

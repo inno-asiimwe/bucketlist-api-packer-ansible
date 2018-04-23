@@ -1,0 +1,13 @@
+- name: Copy over buicketlist-api-gcp.service
+  copy:
+    src: ../files/systemd/bucketlist-api-gcp.service
+    dest: /etc/systemd/system/bucketlist-api-gcp.service
+
+- name: Start bucketlist-api-gcp service
+  command: systemctl start bucketlist-api-gcp
+
+- name: Enable bucketlist-api-gcp service to start on boot 
+  command: systemctl enable bucketlist-api-gcp
+
+- name: Stop bucketlist-api-gcp service
+  command: systemctl stop bucketlist-api-gcp

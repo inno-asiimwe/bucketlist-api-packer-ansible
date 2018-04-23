@@ -1,0 +1,21 @@
+- name: Start nginx
+  command: /etc/init.d/nginx start
+
+- name: Remove default nginx configs
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Create new nginx file
+  command: touch /etc/nginx/sites-available/bucketlist-api-gcp
+
+- name: Create symlink for the new nginx config
+  command: ln -s /etc/nginx/sites-available/bucketlist-api-gcp /etc/nginx/sites-enabled/bucketlist-api-gcp
+
+- name: Copy over nginx configs 
+  copy:
+    src: ../files/nginx/bucketlist-api-gcp
+    dest: /etc/nginx/sites-enabled/bucketlist-api-gcp
+
+- name: Restart nginx
+  command: service nginx restart

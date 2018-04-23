@@ -1,0 +1,31 @@
+{
+    "builders":[
+        {
+            "type": "amazon-ebs",
+            "region": "us-east-1",
+            "source_ami": "ami-aa2ea6d0",
+            "instance_type": "t2.micro",
+            "ssh_username": "ubuntu",
+            "ami_name": "packer-{{ timestamp }}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "scripts": [
+                "scripts/setup.sh"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "files/supervisor/",
+            "destination": "/tmp"
+        },
+        {
+            "type": "shell",
+            "scripts": [
+                "scripts/supervisor.sh"
+            ]
+        }
+    ]
+}

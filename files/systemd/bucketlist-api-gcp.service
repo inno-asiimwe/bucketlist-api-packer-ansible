@@ -1,0 +1,7 @@
+[Unit]
+Description=bucketlist-api-gcp
+[Service]
+ExecStart=/var/www/bucketlist-api-gcp/start.sh
+
+[Install]
+WantedBy=multi-user.target
